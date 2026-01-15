@@ -72,3 +72,13 @@ void Navigator::setRightButtonEnabled(const bool& enabled)
 {
     _rightButton->setEnabled(enabled);
 }
+
+bool Navigator::isLeftButtonEnabled() const
+{
+    return _leftButton->isEnabled();
+}
+
+bool Navigator::isRightButtonEnabled() const
+{
+    return _rightButton->isEnabled();
+}

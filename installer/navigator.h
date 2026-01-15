@@ -15,6 +15,9 @@ public:
     void setRightButtonVisible(const bool& visible);
     void setLeftButtonEnabled(const bool& enabled);
     void setRightButtonEnabled(const bool& enabled);
+    bool isLeftButtonEnabled() const;
+    bool isRightButtonEnabled() const;
+
 signals:
     void leftButtonClicked();
     void rightButtonClicked();

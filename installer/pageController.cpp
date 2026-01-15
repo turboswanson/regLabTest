@@ -1,18 +1,21 @@
 #include "pageController.h"
 #include <QLabel>
 #include <QLayout>
+#include <QComboBox>
 #include <QDebug>
 
-PageController::PageController(QWidget* containerWidget, QObject* parent)
+PageController::PageController(QWidget* parent)
 {
-    _stackedWidget = new QStackedWidget(containerWidget);
-    QVBoxLayout* containerLayout = new QVBoxLayout(containerWidget);
+    _stackedWidget = new QStackedWidget(this);
+    QVBoxLayout* containerLayout = new QVBoxLayout(this);
     containerLayout->addWidget(_stackedWidget);
     setUpWelcomePage();
     setUpInstallationPage();
     _stackedWidget->addWidget(_welcomePage);
     _stackedWidget->addWidget(_installationPage);
     _stackedWidget->setCurrentIndex(_currentPageIndex);
+
+    connect(_packagesList, qOverload<int>(&QComboBox::currentIndexChanged), [this](const int& index) {emit packageSelected(index);});
 }
 void PageController::setUpWelcomePage()
 {
@@ -34,6 +37,14 @@ void PageController::setUpInstallationPage()
     installationLabel->setAlignment(Qt::AlignCenter);
     installationLabel->setFont((QFont("Arial", 24)));
     installationLayout->addWidget(installationLabel);
+
+    _packagesList = new QComboBox();
+    _packagesList->setFont(QFont("Arial", 16));
+    _packagesList->addItem("-- Select package --");
+    _packagesList->addItem("pip", "pip");
+    _packagesList->addItem("npm", "npm");
+    _packagesList->addItem("cargo", "cargo");
+    installationLayout->addWidget(_packagesList, 0 , Qt::AlignCenter);
 }
 void PageController::setCurrentPageIndex(int newCurrentPageIndex)
 {
@@ -47,7 +58,6 @@ void PageController::nextPage()
         _stackedWidget->setCurrentIndex(_currentPageIndex);
 
         emit pageChanged();
-
     }
 }
 
@@ -60,6 +70,11 @@ void PageController::prevPage()
 
         emit pageChanged();
     }
+}
+
+void PageController::setCurrentPackageIndex(const int &index)
+{
+    _packagesList->setCurrentIndex(index);
 }
 
 PageController::Page PageController::currentPage() const
