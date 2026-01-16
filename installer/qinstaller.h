@@ -10,25 +10,21 @@ class QInstaller : public QWidget
 {
     Q_OBJECT
 public:
-    enum class Packages {NOT_SELECTED, PIP, NPM, CARGO};
+    enum class Packages {NOT_SELECTED, PIP, NPM};
     enum class EXIT_CODE {OK, ERRROR };
 
     explicit QInstaller(QWidget *parent = nullptr);
 public slots:
     void handlePageChanged();
-    void handlePipInstallFinished(const int& code);
-    void handleInstallationSuccess();
-    void handleInstallationFailed();
-signals:
-    void pipInstallFinished(const int& code);
-    void installationSuccess();
-    void installationFailed();
-    void dialogClosed();
-private:
     void handlePackageSelected(const int& selectedPackage);
+    // void handleInstallationFinished(const int& code);
+signals:
+    void installationFinished(const int& code);
+private:
     void handleInstallButtonPressed();
-    void handlePipInstallation();
+    void handleInstallation(const Packages& selectedPackage);
     void handleBusyScreen();
+    QString packageToString(const Packages& pkg);
 private:
     PageController *_topWidget;
     Navigator *_bottomWidget;

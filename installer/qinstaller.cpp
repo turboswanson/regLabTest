@@ -49,11 +49,8 @@ QInstaller::QInstaller(QWidget *parent)
             });
 
    connect(_topWidget, &PageController::pageChanged, this, &QInstaller::handlePageChanged);
-   connect(_topWidget, &PageController::packageSelected, [this](const int& selectedIndex) {handlePackageSelected(selectedIndex);});
-   connect(this, &QInstaller::pipInstallFinished, this, &QInstaller::handlePipInstallFinished);
-   connect(this, &QInstaller::installationSuccess,this, &QInstaller::handleInstallationSuccess);
-   connect(this, &QInstaller::installationFailed, this, &QInstaller::handleInstallationFailed);
-
+   connect(_topWidget, &PageController::packageSelected,this, &QInstaller::handlePackageSelected);
+   // connect(this, &QInstaller::installationFinished, this, &QInstaller::handleInstallationFinished);
 }
 void QInstaller::handlePageChanged()
 {
@@ -72,16 +69,37 @@ void QInstaller::handlePageChanged()
     }
 }
 
-void QInstaller::handlePipInstallFinished(const int &code)
-{
-    if(code == static_cast<int>(EXIT_CODE::OK))
-    {
-       emit installationSuccess();
-    } else
-    {
-        emit installationFailed();
-    }
-}
+// void QInstaller::handleInstallationFinished(const int& code)
+// {
+//     const bool success =
+//             (static_cast<EXIT_CODE>(code) == EXIT_CODE::OK);
+
+//     QString message = success ? QString("%1 installation completed successfully!")
+//                                 .arg(packageToString(static_cast<Packages>(_selectedIndex)))
+//                           : QString("%1 installation failed.")
+//                                 .arg(packageToString(static_cast<Packages>(_selectedIndex)));
+
+//     QDialog *dialog = new QDialog(this);
+//     dialog->setWindowTitle("Message");
+//     QVBoxLayout *layout = new QVBoxLayout(dialog);
+//     QLabel *label = new QLabel(message, dialog);
+//     label->setWordWrap(true);
+//     layout->addWidget(label);
+
+//     QPushButton *okButton = new QPushButton("OK", dialog);
+//     layout->addWidget(okButton);
+//     okButton->setDefault(true);
+
+//     connect(okButton, &QPushButton::clicked, dialog, &QDialog::accept);
+
+//     connect(dialog, &QDialog::accepted, this, [this, dialog]() {
+
+//        _topWidget->setCurrentPackageIndex(static_cast<int>(Packages::NOT_SELECTED));
+//         dialog->deleteLater();
+//     });
+
+//     dialog->exec();
+// }
 
 void QInstaller::handlePackageSelected(const int& selectedIndex)
 {
@@ -95,8 +113,6 @@ void QInstaller::handlePackageSelected(const int& selectedIndex)
         _bottomWidget->setRightButtonEnabled(true);
 
     _selectedIndex = selectedIndex;
-
-
 }
 
 void QInstaller::handleInstallButtonPressed()
@@ -104,21 +120,29 @@ void QInstaller::handleInstallButtonPressed()
     if(_selectedIndex)
     {
         _bottomWidget->setRightButtonEnabled(false);
-
-
-
-        switch(static_cast<Packages>(_selectedIndex))
-        {
-            case Packages::PIP : handlePipInstallation(); handleBusyScreen(); break;
-        }
+        handleBusyScreen();
+        handleInstallation(static_cast<Packages>(_selectedIndex));
     }
 }
 
-void QInstaller::handlePipInstallation()
+void QInstaller::handleInstallation(const Packages& selectedPackage)
 {
-    QProcess *proc = new QProcess(this);
+    QString cmd;
 
-    QString cmd = "python3 -m pip install --user requests";
+    switch(selectedPackage)
+    {
+        case Packages::PIP:
+            cmd = "python3 -m pip install --user requests";
+            break;
+        case Packages::NPM:
+            cmd ="npm install --prefix ~/.local lodash" ;
+            break;
+        case Packages::NOT_SELECTED:
+        default:
+            return;
+    }
+
+    QProcess *proc = new QProcess(this);
 
     proc->setProgram("bash");
     proc->setArguments({"-lc", cmd});
@@ -131,10 +155,10 @@ void QInstaller::handlePipInstallation()
     connect(proc,
             QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this,
-            [this,proc](int code, QProcess::ExitStatus status) {
+            [this,proc,selectedPackage](int code, QProcess::ExitStatus status) {
                 qDebug() << "Finished with code:" << code
-                         << "status:" << status;
-                emit pipInstallFinished(code);
+                         << "_status:" << status;
+                emit installationFinished(code);
                 proc->deleteLater();
             });
 
@@ -150,23 +174,10 @@ void QInstaller::handleBusyScreen()
     label->setWordWrap(true);
     layout->addWidget(label);
 
-    connect(this, &QInstaller::pipInstallFinished,dialog, &QDialog::accept );
-
-    dialog->exec();
-}
-
-void QInstaller::handleInstallationSuccess()
-{
-    QDialog *dialog = new QDialog(this);
-    dialog->setWindowTitle("Message");
-    QVBoxLayout *layout = new QVBoxLayout(dialog);
-    QLabel *label = new QLabel("Installation completed successfully!", dialog);
-    label->setWordWrap(true);
-    layout->addWidget(label);
-
     QPushButton *okButton = new QPushButton("OK", dialog);
     layout->addWidget(okButton);
     okButton->setDefault(true);
+    okButton->hide();
 
     connect(okButton, &QPushButton::clicked, dialog, &QDialog::accept);
 
@@ -176,11 +187,34 @@ void QInstaller::handleInstallationSuccess()
         dialog->deleteLater();
     });
 
-    dialog->exec();
+    connect(this, &QInstaller::installationFinished,dialog, [this, dialog, label, okButton](const int& code) {
+        const bool success =
+                (static_cast<EXIT_CODE>(code) == EXIT_CODE::OK);
+
+        QString message = success ? QString("%1 installation completed successfully!")
+                                    .arg(packageToString(static_cast<Packages>(_selectedIndex)))
+                              : QString("%1 installation failed.")
+                                    .arg(packageToString(static_cast<Packages>(_selectedIndex)));
+        label->setText(message);
+
+        okButton->show();
+        dialog->adjustSize();
+    });
+
+    dialog->show();
 }
 
-void QInstaller::handleInstallationFailed()
+QString QInstaller::packageToString(const Packages& pkg)
 {
-
+    switch (pkg) {
+     case Packages::PIP:  return "PIP package";
+     case Packages::NPM:  return "NPM package";
+     case Packages::NOT_SELECTED:
+     default:
+         return "Unknown package";
+     }
 }
+
+
+
 

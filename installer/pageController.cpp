@@ -43,7 +43,6 @@ void PageController::setUpInstallationPage()
     _packagesList->addItem("-- Select package --");
     _packagesList->addItem("pip", "pip");
     _packagesList->addItem("npm", "npm");
-    _packagesList->addItem("cargo", "cargo");
     installationLayout->addWidget(_packagesList, 0 , Qt::AlignCenter);
 }
 void PageController::setCurrentPageIndex(int newCurrentPageIndex)
