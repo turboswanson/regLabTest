@@ -1,35 +1,30 @@
 #include "navigator.h"
+
+#include <QDebug>
+#include <QFile>
 #include <QLayout>
 
-Navigator::Navigator(QWidget *parent)
-: QWidget{parent}
+Navigator::Navigator(QWidget* parent) : QWidget{parent}
 {
     this->setMinimumHeight(100);
 
-    QHBoxLayout *mainLayout = new QHBoxLayout(this);
+    QHBoxLayout* mainLayout = new QHBoxLayout(this);
 
     mainLayout->setContentsMargins(20, 10, 20, 10);
 
     mainLayout->setSpacing(0);
 
-    this->setStyleSheet(
-        // "#navigatorWidget {"
-        // "    background-color: #f0f0f0;"
-        // "    border: 10px solid blue;"
-        // "}"
-        "QPushButton {"
-        "    border: 1px solid dimgray;"
-        "    border-radius: 5px;"
-        "    padding: 8px;"
-        "    background-color: white;"
-        "}"
-        "QPushButton:hover {"
-        "    background-color: lightgray;"
-        "}"
-        "QPushButton:pressed {"
-        "    background-color: silver;"
-        "}"
-        );
+    QFile styleFile(":/styles/navigator.qss");
+    if (styleFile.open(QFile::ReadOnly))
+    {
+        QString style = styleFile.readAll();
+        this->setStyleSheet(style);
+        ;
+    }
+    else
+    {
+        qDebug() << "Failed to load stylesheet:" << styleFile.errorString();
+    }
 
     _leftButton = new QPushButton("");
     _leftButton->setFixedSize(120, 40);
@@ -41,12 +36,8 @@ Navigator::Navigator(QWidget *parent)
     mainLayout->addStretch();
     mainLayout->addWidget(_rightButton, 0, Qt::AlignRight);
 
-    connect(_leftButton, &QPushButton::clicked, [this]() {
-                emit leftButtonClicked();
-            });
-    connect(_rightButton, &QPushButton::clicked, [this]() {
-                emit rightButtonClicked();
-            });
+    connect(_leftButton, &QPushButton::clicked, [this]() { emit leftButtonClicked(); });
+    connect(_rightButton, &QPushButton::clicked, [this]() { emit rightButtonClicked(); });
 }
 void Navigator::setLeftButtonLabel(const QString& label)
 {

@@ -44,6 +44,7 @@ find_package(Qt5 REQUIRED COMPONENTS Widgets)
             pageController.h pageController.cpp
             qinstaller.h qinstaller.cpp
             navigator.h navigator.cpp
+            resources.qrc
         )
     endif()
 endif()

@@ -1,30 +1,34 @@
 #include "pageController.h"
-#include <QLabel>
-#include <QLayout>
+
 #include <QComboBox>
 #include <QDebug>
+#include <QLabel>
+#include <QLayout>
 
 PageController::PageController(QWidget* parent)
 {
     _stackedWidget = new QStackedWidget(this);
     QVBoxLayout* containerLayout = new QVBoxLayout(this);
     containerLayout->addWidget(_stackedWidget);
-    setUpWelcomePage();
+    QString devLastName = "Lebedev";
+    setUpWelcomePage(devLastName);
     setUpInstallationPage();
     _stackedWidget->addWidget(_welcomePage);
     _stackedWidget->addWidget(_installationPage);
     _stackedWidget->setCurrentIndex(_currentPageIndex);
 
-    connect(_packagesList, qOverload<int>(&QComboBox::currentIndexChanged), [this](const int& index) {emit packageSelected(index);});
+    connect(_packagesList, qOverload<int>(&QComboBox::currentIndexChanged),
+            [this](const int& index) { emit packageSelected(index); });
 }
-void PageController::setUpWelcomePage()
+void PageController::setUpWelcomePage(const QString& welcomeText)
 {
     _welcomePage = new QWidget();
-    QGridLayout *welcomeLayout = new QGridLayout(_welcomePage);
-    QLabel *welcomeLabel = new QLabel("Welcome");
+    QGridLayout* welcomeLayout = new QGridLayout(_welcomePage);
+    QLabel* welcomeLabel = new QLabel(welcomeText);
     welcomeLabel->setAlignment(Qt::AlignCenter);
     welcomeLabel->setFont((QFont("Arial", 28, QFont::Bold)));
-    welcomeLabel->setStyleSheet("color: red; border: 2px solid blue; border-radius: 10px; padding: 15px;");
+    welcomeLabel->setStyleSheet(
+        "color: red; border: 2px solid blue; border-radius: 10px; padding: 15px;");
     welcomeLayout->addWidget(welcomeLabel, 0, 0, Qt::AlignCenter);
     welcomeLayout->setRowStretch(0, 1);
     welcomeLayout->setColumnStretch(0, 1);
@@ -32,8 +36,8 @@ void PageController::setUpWelcomePage()
 void PageController::setUpInstallationPage()
 {
     _installationPage = new QWidget();
-    QVBoxLayout *installationLayout = new QVBoxLayout(_installationPage);
-    QLabel *installationLabel = new QLabel("Installation");
+    QVBoxLayout* installationLayout = new QVBoxLayout(_installationPage);
+    QLabel* installationLabel = new QLabel("Installation");
     installationLabel->setAlignment(Qt::AlignCenter);
     installationLabel->setFont((QFont("Arial", 24)));
     installationLayout->addWidget(installationLabel);
@@ -43,7 +47,7 @@ void PageController::setUpInstallationPage()
     _packagesList->addItem("-- Select package --");
     _packagesList->addItem("pip", "pip");
     _packagesList->addItem("npm", "npm");
-    installationLayout->addWidget(_packagesList, 0 , Qt::AlignCenter);
+    installationLayout->addWidget(_packagesList, 0, Qt::AlignCenter);
 }
 void PageController::setCurrentPageIndex(int newCurrentPageIndex)
 {
@@ -51,7 +55,7 @@ void PageController::setCurrentPageIndex(int newCurrentPageIndex)
 }
 void PageController::nextPage()
 {
-    if(_currentPageIndex < _stackedWidget->count() - 1)
+    if (_currentPageIndex < _stackedWidget->count() - 1)
     {
         _currentPageIndex++;
         _stackedWidget->setCurrentIndex(_currentPageIndex);
@@ -62,7 +66,7 @@ void PageController::nextPage()
 
 void PageController::prevPage()
 {
-    if(_currentPageIndex)
+    if (_currentPageIndex)
     {
         _currentPageIndex--;
         _stackedWidget->setCurrentIndex(_currentPageIndex);
@@ -71,7 +75,7 @@ void PageController::prevPage()
     }
 }
 
-void PageController::setCurrentPackageIndex(const int &index)
+void PageController::setCurrentPackageIndex(const int& index)
 {
     _packagesList->setCurrentIndex(index);
 }
